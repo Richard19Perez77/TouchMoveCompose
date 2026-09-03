@@ -1,4 +1,3 @@
-// Composable screen that renders the animated touch interaction and manages lifecycle updates.
 package com.rick.touchmovecompose
 
 import androidx.compose.animation.core.Animatable
@@ -41,8 +40,15 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
 import com.rick.touchmovecompose.ui.theme.TouchMoveComposeTheme
 
+/** Same curve as the original XML accelerate interpolator (t²). */
 private val AccelerateEasing = Easing { fraction -> fraction * fraction }
 
+/**
+ * Toolbar, intro scale, overlay, and drawing canvas.
+ *
+ * The old SurfaceView thread is a [withFrameNanos] loop: each vsync ticks
+ * [TouchMoveEngine.updatePhysics], then [frameNanos] invalidates the Canvas.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TouchMoveScreen(modifier: Modifier = Modifier) {
@@ -53,6 +59,7 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
     }
 
     var introFinished by remember { mutableStateOf(false) }
+    // Read inside Canvas so a vsync without other state still redraws.
     var frameNanos by remember { mutableLongStateOf(0L) }
     val introScale = remember { Animatable(0f) }
 
@@ -67,6 +74,7 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
         introFinished = true
     }
 
+    // Pause when the activity is not resumed; otherwise run the vsync loop.
     LaunchedEffect(isResumed, engine) {
         if (!isResumed) {
             engine.pauseFromLifecycle(pauseMessage)
@@ -110,6 +118,8 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
                             val down = awaitFirstDown()
                             if (!introFinished) return@awaitEachGesture
                             if (!engine.isRunning) {
+                                // First tap leaves the blue overlay; the rest of
+                                // this gesture still spawns and then disperses.
                                 engine.resumeFromTap()
                                 drag(down.id) { change ->
                                     engine.onMove(change.position)

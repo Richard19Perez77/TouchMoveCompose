@@ -1,4 +1,3 @@
-// Core game engine responsible for touch tracking, square spawning, and drawing updates.
 package com.rick.touchmovecompose
 
 import android.graphics.Point
@@ -18,8 +17,10 @@ import java.util.Locale
 import kotlin.math.min
 
 /**
- * Game state and physics from the original SquareSet, driven by Compose frames
- * instead of a SurfaceView thread.
+ * SquareSet port: squares, touch flags, and HUD, ticked from Compose vsync.
+ *
+ * Pointer handlers only set flags. [updatePhysics] applies one of spawn, clear,
+ * or disperse per frame (in that priority), matching the original if-else.
  */
 class TouchMoveEngine {
     var isRunning by mutableStateOf(false)
@@ -37,6 +38,7 @@ class TouchMoveEngine {
 
     private val squares = ArrayList<MovingSquare>()
 
+    // One-shot / sticky flags consumed by [updatePhysics] (spawn > clear > fly).
     private var createSquare = false
     private var clearSquares = false
     private var touchingScreen = false
@@ -86,6 +88,7 @@ class TouchMoveEngine {
         squares.clear()
     }
 
+    /** New stroke: wipe the board on the next tick that is not a spawn. */
     fun onDown(position: Offset) {
         recordTouch(position)
         clearSquares = true
@@ -94,11 +97,13 @@ class TouchMoveEngine {
         touchCounter = 0
     }
 
+    /** Request one square at this point on the next physics tick. */
     fun onMove(position: Offset) {
         recordTouch(position)
         createSquare = true
     }
 
+    /** Stop spawning; remaining squares walk their [PlotPoints] paths. */
     fun onUp() {
         touchCounter++
         touchingScreen = false
@@ -108,6 +113,7 @@ class TouchMoveEngine {
     fun updatePhysics() {
         screenColor = Color.White
         if (createSquare) {
+            // Drag wins: spawn even if clearSquares is still set from onDown.
             createSquare = false
             spawnSquare()
         } else if (clearSquares) {
@@ -126,6 +132,7 @@ class TouchMoveEngine {
 
         scope.drawRect(color = screenColor, size = scope.size)
 
+        // HUD is native Paint, same as the SurfaceView overlay, not Compose Text.
         val textSize = hudPaint.textSize
         scope.drawContext.canvas.nativeCanvas.apply {
             drawText("Date: $formattedDate", 20f, textSize + 10, hudPaint)
@@ -151,6 +158,7 @@ class TouchMoveEngine {
     }
 
     private fun spawnSquare() {
+        // Half-size is a random fraction of the shortest distance to an edge.
         val x1 = newX.toInt()
         val x2 = (screenW - newX).toInt()
         val y1 = newY.toInt()
@@ -176,6 +184,7 @@ class TouchMoveEngine {
         }
     }
 
+    /** Stroked rect that, after lift, steps along a random on-screen line. */
     private inner class MovingSquare(
         var left: Float,
         var top: Float,
@@ -214,6 +223,7 @@ class TouchMoveEngine {
     }
 
     companion object {
+        /** Spawn half-size vs. shortest edge distance (0 = tiny, 1 = to the edge). */
         const val SQUARE_RATIO = 0.2
         private const val HUD_TEXT_SIZE = 35f
     }

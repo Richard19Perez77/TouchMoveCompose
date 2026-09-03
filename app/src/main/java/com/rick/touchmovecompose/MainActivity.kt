@@ -1,4 +1,3 @@
-// Entry point for the app. This activity hosts the Compose UI and launches the touch-based screen.
 package com.rick.touchmovecompose
 
 import android.os.Bundle
@@ -9,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import com.rick.touchmovecompose.ui.theme.TouchMoveComposeTheme
 
+/** Hosts [TouchMoveScreen]; there is no XML layout or SurfaceView. */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

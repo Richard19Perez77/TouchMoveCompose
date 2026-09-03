@@ -1,4 +1,3 @@
-// Android instrumentation test used to validate the app package context.
 package com.rick.touchmovecompose
 
 import androidx.test.platform.app.InstrumentationRegistry

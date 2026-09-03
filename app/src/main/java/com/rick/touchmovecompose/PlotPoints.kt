@@ -1,28 +1,21 @@
-// Utility that interpolates a line between two points so the moving squares can follow a path.
 package com.rick.touchmovecompose
 
 import android.graphics.Point
 
+/**
+ * Pixel path from [a] to [b] used when a square is released.
+ *
+ * Dispatches to eight helpers (cardinal + diagonal). Diagonals fill the longer
+ * axis one pixel at a time and interpolate the shorter axis — not Bresenham,
+ * so the original flight feel is preserved.
+ */
 class PlotPoints {
-    /**
-     * This class is used to get an array of Point objects that are the line
-     * from a to b;
-     *
-     */
     var a: Point? = null
     var b: Point? = null
     var point: Point? = null
     lateinit var pointArr: Array<Point?>
 
-    /**
-     * Begins plotting points on a line between two points.
-     *
-     * @param pointA
-     * start point
-     * @param pointB
-     * end point
-     * @return list of points between them in a line
-     */
+    /** Fill [pointArr] with the pixel steps from [pointA] to [pointB]. */
     fun plotLine(pointA: Point?, pointB: Point?): Array<Point?> {
         a = pointA
         b = pointB
@@ -30,11 +23,8 @@ class PlotPoints {
         return pointArr
     }
 
-    /**
-     * Check for up or down movement, if not straight left or right.
-     */
+    /** Pick the octant from [a] to [b] and fill [pointArr]. */
     fun PlotPointsToLocation() {
-        // move object up wards
         if (a!!.y > b!!.y) {
             if (a!!.x < b!!.x) {
                 plotPointsUpRight()
@@ -43,7 +33,6 @@ class PlotPoints {
             } else {
                 plotPointsUp()
             }
-            // move objects downwards
         } else if (a!!.y < b!!.y) {
             if (a!!.x < b!!.x) {
                 plotPointsDownRight()
@@ -52,7 +41,6 @@ class PlotPoints {
             } else {
                 plotPointsDown()
             }
-            // move left or right
         } else if (a!!.x > b!!.x) {
             plotPointsLeft()
         } else {
@@ -96,19 +84,15 @@ class PlotPoints {
         }
     }
 
-    /**
-     *
-     */
+    /** Vertical: x stays put, y decreases. */
     private fun plotPointsUp() {
         var tempY = a!!.y
         val tempX = a!!.x
-        // given points to the top create the list of points to traverse
         val verticalPixels = Math.abs(a!!.y - b!!.y).toDouble()
         pointArr = arrayOfNulls(verticalPixels.toInt())
         var i = 0
         while (i < verticalPixels) {
             point = Point()
-            // every step move up a point
             tempY--
             point!!.x = tempX
             point!!.y = tempY
@@ -118,6 +102,7 @@ class PlotPoints {
         }
     }
 
+    /** Diagonal up-right: step the long axis, interpolate the short one. */
     private fun plotPointsUpRight() {
         val verticalPixels = Math.abs(a!!.y - b!!.y).toDouble()
         val horizontalPixels = Math.abs(a!!.x - b!!.x).toDouble()
@@ -192,6 +177,7 @@ class PlotPoints {
         }
     }
 
+    /** Diagonal up-left: step the long axis, interpolate the short one. */
     private fun plotPointsUpLeft() {
         val verticalPixels = Math.abs(a!!.y - b!!.y).toDouble()
         val horizontalPixels = Math.abs(a!!.x - b!!.x).toDouble()
@@ -266,16 +252,15 @@ class PlotPoints {
         }
     }
 
+    /** Vertical: x stays put, y increases. */
     private fun plotPointsDown() {
         var tempY = a!!.y
         val tempX = a!!.x
-        // given points to the top create the list of points to traverse
         val verticalPixels = Math.abs(b!!.y - a!!.y).toDouble()
         pointArr = arrayOfNulls(verticalPixels.toInt())
         var i = 0
         while (i < verticalPixels) {
             point = Point()
-            // every step move up a point
             tempY++
             point!!.x = tempX
             point!!.y = tempY
@@ -285,6 +270,7 @@ class PlotPoints {
         }
     }
 
+    /** Diagonal down-right: step the long axis, interpolate the short one. */
     private fun plotPointsDownRight() {
         val verticalPixels = Math.abs(a!!.y - b!!.y).toDouble()
         val horizontalPixels = Math.abs(a!!.x - b!!.x).toDouble()
@@ -359,6 +345,7 @@ class PlotPoints {
         }
     }
 
+    /** Diagonal down-left: step the long axis, interpolate the short one. */
     private fun plotPointsDownLeft() {
         val verticalPixels = Math.abs(a!!.y - b!!.y).toDouble()
         val horizontalPixels = Math.abs(a!!.x - b!!.x).toDouble()
