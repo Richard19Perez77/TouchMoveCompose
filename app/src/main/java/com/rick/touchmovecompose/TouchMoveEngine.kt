@@ -1,3 +1,4 @@
+// Core game engine responsible for touch tracking, square spawning, and drawing updates.
 package com.rick.touchmovecompose
 
 import android.graphics.Point

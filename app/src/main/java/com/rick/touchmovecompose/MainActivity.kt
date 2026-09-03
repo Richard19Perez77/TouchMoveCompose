@@ -1,3 +1,4 @@
+// Entry point for the app. This activity hosts the Compose UI and launches the touch-based screen.
 package com.rick.touchmovecompose
 
 import android.os.Bundle

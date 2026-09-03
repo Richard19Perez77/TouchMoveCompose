@@ -1,3 +1,4 @@
+// Baseline typography configuration for the app's Material theme.
 package com.rick.touchmovecompose.ui.theme
 
 import androidx.compose.material3.Typography

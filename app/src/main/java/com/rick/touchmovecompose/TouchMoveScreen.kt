@@ -1,3 +1,4 @@
+// Composable screen that renders the animated touch interaction and manages lifecycle updates.
 package com.rick.touchmovecompose
 
 import androidx.compose.animation.core.Animatable

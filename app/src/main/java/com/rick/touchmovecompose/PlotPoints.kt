@@ -1,3 +1,4 @@
+// Utility that interpolates a line between two points so the moving squares can follow a path.
 package com.rick.touchmovecompose
 
 import android.graphics.Point

@@ -1,3 +1,4 @@
+// Local unit test sample for basic project validation.
 package com.rick.touchmovecompose
 
 import org.junit.Test

@@ -1,3 +1,4 @@
+// Default Material color palette used by the app theme.
 package com.rick.touchmovecompose.ui.theme
 
 import androidx.compose.ui.graphics.Color

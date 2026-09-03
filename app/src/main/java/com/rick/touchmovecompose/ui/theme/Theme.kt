@@ -1,3 +1,4 @@
+// Material theme setup that applies the app's light and dark color scheme.
 package com.rick.touchmovecompose.ui.theme
 
 import android.app.Activity
