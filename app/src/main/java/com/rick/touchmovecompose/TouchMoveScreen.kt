@@ -1,0 +1,155 @@
+package com.rick.touchmovecompose
+
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
+import com.rick.touchmovecompose.ui.theme.TouchMoveComposeTheme
+
+private val AccelerateEasing = Easing { fraction -> fraction * fraction }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TouchMoveScreen(modifier: Modifier = Modifier) {
+    val tapMessage = stringResource(R.string.tap_blue_screen)
+    val pauseMessage = stringResource(R.string.message_text)
+    val engine = remember(tapMessage) {
+        TouchMoveEngine().also { it.restart(tapMessage) }
+    }
+
+    var introFinished by remember { mutableStateOf(false) }
+    var frameNanos by remember { mutableLongStateOf(0L) }
+    val introScale = remember { Animatable(0f) }
+
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    val isResumed = lifecycleState.isAtLeast(Lifecycle.State.RESUMED)
+
+    LaunchedEffect(Unit) {
+        introScale.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 1500, easing = AccelerateEasing)
+        )
+        introFinished = true
+    }
+
+    LaunchedEffect(isResumed, engine) {
+        if (!isResumed) {
+            engine.pauseFromLifecycle(pauseMessage)
+            return@LaunchedEffect
+        }
+        while (true) {
+            withFrameNanos { nanos ->
+                if (engine.isRunning) {
+                    engine.updatePhysics()
+                }
+                frameNanos = nanos
+            }
+        }
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.title_touch_move)) },
+                actions = {
+                    TextButton(onClick = { engine.restart(tapMessage) }) {
+                        Text(stringResource(R.string.action_restart))
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .scale(introScale.value)
+        ) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onSizeChanged { size -> engine.setSize(size.width, size.height) }
+                    .pointerInput(introFinished, engine) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown()
+                            if (!introFinished) return@awaitEachGesture
+                            if (!engine.isRunning) {
+                                engine.resumeFromTap()
+                                drag(down.id) { change ->
+                                    engine.onMove(change.position)
+                                    change.consume()
+                                }
+                                engine.onUp()
+                            } else {
+                                engine.onDown(down.position)
+                                drag(down.id) { change ->
+                                    engine.onMove(change.position)
+                                    change.consume()
+                                }
+                                engine.onUp()
+                            }
+                        }
+                    }
+            ) {
+                frameNanos
+                engine.draw(this)
+            }
+
+            if (engine.overlayVisible) {
+                Text(
+                    text = engine.overlayMessage,
+                    color = Color.Red,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(5.dp)
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TouchMoveScreenPreview() {
+    TouchMoveComposeTheme {
+        TouchMoveScreen()
+    }
+}
