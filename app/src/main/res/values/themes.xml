@@ -2,4 +2,6 @@
 <resources>
 
     <style name="Theme.TouchMoveCompose" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- No windowOptOutEdgeToEdgeEnforcement: ignored for targetSdk 36+ and
+         unused here. Bars are made transparent by enableEdgeToEdge() instead. -->
 </resources>

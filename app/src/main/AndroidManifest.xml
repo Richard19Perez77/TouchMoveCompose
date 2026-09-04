@@ -17,6 +17,9 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.TouchMoveCompose"
             android:windowSoftInputMode="adjustResize">
+            <!-- adjustResize: with edge-to-edge, the window resizes for the IME
+                 so Compose can receive keyboard insets (template default; this
+                 screen has no text fields). -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

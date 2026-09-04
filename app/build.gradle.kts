@@ -5,6 +5,11 @@ plugins {
 
 android {
     namespace = "com.rick.touchmovecompose"
+    // Android 17 (API 37). compileSdk unlocks platform APIs; targetSdk opts into
+    // runtime behavior. Edge-to-edge is already mandatory for target 35+ on
+    // Android 15+, and the theme opt-out is gone at target 36+. Targeting 37
+    // keeps that e2e contract and also drops large-screen orientation /
+    // resizability opt-outs (sw >= 600dp).
     compileSdk {
         version = release(37)
     }

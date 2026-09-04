@@ -48,6 +48,10 @@ private val AccelerateEasing = Easing { fraction -> fraction * fraction }
  *
  * The old SurfaceView thread is a [withFrameNanos] loop: each vsync ticks
  * [TouchMoveEngine.updatePhysics], then [frameNanos] invalidates the Canvas.
+ *
+ * With targetSdk 37, the window is edge-to-edge. Material3 [Scaffold] applies
+ * system-bar insets as [innerPadding] so the TopAppBar and canvas sit below the
+ * status bar / above the nav bar while the theme can still draw into those areas.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,6 +107,7 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
             )
         }
     ) { innerPadding ->
+        // System-bar insets from Scaffold (required once the app is edge-to-edge).
         Box(
             modifier = Modifier
                 .padding(innerPadding)
