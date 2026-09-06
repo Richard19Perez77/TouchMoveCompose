@@ -3,7 +3,7 @@ package com.rick.touchmovecompose
 import android.graphics.Point
 
 /**
- * Pixel path from [a] to [b] used when a square is released.
+ * Pixel path from [a] to [b] used when a cube is released.
  *
  * Dispatches to eight helpers (cardinal + diagonal). Diagonals fill the longer
  * axis one pixel at a time and interpolate the shorter axis — not Bresenham,

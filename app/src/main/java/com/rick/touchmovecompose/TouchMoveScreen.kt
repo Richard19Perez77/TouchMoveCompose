@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -58,9 +59,11 @@ private val AccelerateEasing = Easing { fraction -> fraction * fraction }
 fun TouchMoveScreen(modifier: Modifier = Modifier) {
     val tapMessage = stringResource(R.string.tap_blue_screen)
     val pauseMessage = stringResource(R.string.message_text)
+    val context = LocalContext.current
     val engine = remember(tapMessage) {
         TouchMoveEngine().also { it.restart(tapMessage) }
     }
+    val telemetry = remember(context) { PerformanceTelemetry(context) }
 
     var introFinished by remember { mutableStateOf(false) }
     // Read inside Canvas so a vsync without other state still redraws.
@@ -86,6 +89,7 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
         }
         while (true) {
             withFrameNanos { nanos ->
+                telemetry.onFrame(nanos)
                 if (engine.isRunning) {
                     engine.updatePhysics()
                 }
@@ -100,7 +104,10 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
             TopAppBar(
                 title = { Text(stringResource(R.string.title_touch_move)) },
                 actions = {
-                    TextButton(onClick = { engine.restart(tapMessage) }) {
+                    TextButton(onClick = {
+                        engine.restart(tapMessage)
+                        telemetry.reset()
+                    }) {
                         Text(stringResource(R.string.action_restart))
                     }
                 }
@@ -143,7 +150,7 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
                     }
             ) {
                 frameNanos
-                engine.draw(this)
+                engine.draw(this, telemetry)
             }
 
             if (engine.overlayVisible) {
