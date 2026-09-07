@@ -74,6 +74,7 @@ class TouchMoveEngine {
     fun resumeFromTap() {
         isRunning = true
         overlayMessage = ""
+        touchingScreen = true
     }
 
     fun pauseFromLifecycle(message: String) {
