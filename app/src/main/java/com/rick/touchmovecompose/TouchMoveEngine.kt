@@ -15,8 +15,8 @@ import kotlin.math.min
 /**
  * Cube set: isometric cubes, touch flags, and HUD, ticked from Compose vsync.
  *
- * Pointer handlers only set flags. [updatePhysics] applies one of spawn, clear,
- * or disperse per frame (in that priority), matching the original if-else.
+ * Pointer handlers only set flags. [updatePhysics] may clear, spawn, and
+ * step every cube on the same tick so motion starts as soon as a cube exists.
  */
 class TouchMoveEngine {
     var isRunning by mutableStateOf(false)
@@ -33,12 +33,12 @@ class TouchMoveEngine {
     private var screenH = 0
 
     private val cubes = ArrayList<MovingCube>()
+    private val cubeBatch = CubeBatch()
 
-    // One-shot / sticky flags consumed by [updatePhysics] (spawn > clear > fly).
+    // Flags consumed by [updatePhysics] each vsync.
     private var createCube = false
     private var clearCubes = false
     private var touchingScreen = false
-    private var disperseCubes = false
 
     private var newX = 0f
     private var newY = 0f
@@ -76,62 +76,71 @@ class TouchMoveEngine {
         screenColor = Color.Blue
         createCube = false
         clearCubes = false
-        disperseCubes = false
         touchingScreen = false
         drawCounter = 0
         touchCounter = 0
         cubes.clear()
     }
 
-    /** New stroke: wipe the board on the next tick that is not a spawn. */
+    /** New stroke: wipe the board, then spawn at this point on the next tick. */
     fun onDown(position: Offset) {
         recordTouch(position)
         clearCubes = true
+        createCube = true
         touchingScreen = true
         drawCounter = 0
         touchCounter = 0
     }
 
-    /** Request one cube at this point on the next physics tick. */
+    /** Request another cube at this point on the next physics tick. */
     fun onMove(position: Offset) {
         recordTouch(position)
         createCube = true
     }
 
-    /** Stop spawning; remaining cubes walk their [PlotPoints] paths. */
+    /** Stop spawning; cubes already in flight keep walking their paths. */
     fun onUp() {
         touchCounter++
         touchingScreen = false
-        disperseCubes = true
     }
 
-    fun updatePhysics() {
+    fun updatePhysics(telemetry: PerformanceTelemetry) {
         screenColor = Color.White
-        if (createCube) {
-            // Drag wins: spawn even if clearCubes is still set from onDown.
-            createCube = false
-            spawnCube()
-        } else if (clearCubes) {
+        if (clearCubes) {
             clearCubes = false
-            disperseCubes = false
             cubes.clear()
-        } else if (disperseCubes) {
-            cubes.toTypedArray().forEach { it.updatePoint() }
+        }
+        if (createCube) {
+            createCube = false
+            if (!telemetry.holdSpawn) {
+                spawnCube()
+            }
+        }
+        for (i in cubes.indices) {
+            cubes[i].updatePoint()
         }
     }
 
     fun draw(scope: DrawScope, telemetry: PerformanceTelemetry) {
         drawCounter++
-        val snapshot = cubes.toList()
 
         scope.drawRect(color = screenColor, size = scope.size)
 
-        // Painter's algorithm: lower cubes overlap higher ones.
-        snapshot
-            .sortedBy { it.top + it.left }
-            .forEach { cube ->
-                scope.drawIsometricCube(cube.left, cube.top, cube.size)
+        val minSize = if (telemetry.skipSmallCubes) {
+            PerformanceTelemetry.LOD_MIN_SIZE
+        } else {
+            1f
+        }
+        // In-place painter's sort: lower cubes overlap higher ones.
+        cubes.sortBy { it.top + it.left }
+        cubeBatch.begin()
+        for (i in cubes.indices) {
+            val cube = cubes[i]
+            if (cube.size >= minSize) {
+                cubeBatch.addCube(cube.left, cube.top, cube.size)
             }
+        }
+        cubeBatch.draw(scope.drawContext.canvas.nativeCanvas)
 
         // Telemetry last so cubes never cover it.
         val textSize = hudPaint.textSize
@@ -149,7 +158,10 @@ class TouchMoveEngine {
                 drawText(text, 20f, y, hudPaint)
                 y += lineGap
             }
-            hudLine("Cubes: ${snapshot.size}  Draws: $drawCounter  Touches: $touchCounter")
+            hudLine(
+                "Cubes: ${cubes.size} (${cubeBatch.cubeCount} drawn)  " +
+                    "Draws: $drawCounter  Touches: $touchCounter"
+            )
             hudLine(
                 "FPS: ${telemetry.fps.format1()}  " +
                     "Frame: ${telemetry.frameMs.format1()}ms  " +
@@ -168,7 +180,8 @@ class TouchMoveEngine {
             )
             hudLine(
                 "PSS: ${telemetry.pssMb.format0()} MB  " +
-                    "Thermal: ${telemetry.thermalLabel}"
+                    "Thermal: ${telemetry.thermalLabel}  " +
+                    telemetry.budgetLabel
             )
         }
     }
@@ -206,7 +219,7 @@ class TouchMoveEngine {
         }
     }
 
-    /** Isometric cube that, after lift, steps along a random on-screen line. */
+    /** Isometric cube that walks a random on-screen line as soon as it exists. */
     private inner class MovingCube(
         var left: Float,
         var top: Float,

@@ -91,7 +91,7 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
             withFrameNanos { nanos ->
                 telemetry.onFrame(nanos)
                 if (engine.isRunning) {
-                    engine.updatePhysics()
+                    engine.updatePhysics(telemetry)
                 }
                 frameNanos = nanos
             }
