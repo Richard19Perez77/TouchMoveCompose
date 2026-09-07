@@ -6,7 +6,9 @@ Android app: drag on the screen and isometric **cubes** spawn and fly. Built wit
 
 [Detailed overview](docs/OVERVIEW.md) covers every class, the frame loop, telemetry, and performance budget.
 
-<img width="1280" height="720" alt="TouchMoveKotlin 2" src="https://github.com/user-attachments/assets/a6f06dc0-8693-4806-ba9d-f9230c41768c" />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a6f06dc0-8693-4806-ba9d-f9230c41768c" width="640" alt="TouchMoveKotlin 2" />
+</p>
 
 ## Features
 
@@ -17,11 +19,20 @@ Android app: drag on the screen and isometric **cubes** spawn and fly. Built wit
 - Batched `drawVertices` + `drawLines` (two native draws per frame, not one path per face)
 - Edge-to-edge Material 3 chrome (`minSdk` 24, `targetSdk` 37)
 
-<img width="540" height="1200" alt="Screenshot_20260907_114137" src="https://github.com/user-attachments/assets/61cf5976-01b9-432c-99c4-a8264dc1bcd7" />
-<img width="540" height="1200" alt="Screenshot_20260907_114049" src="https://github.com/user-attachments/assets/fae792c1-6d5a-4c08-938e-12cc169dacff" />
-<img width="540" height="1200" alt="Screenshot_20260907_114045" src="https://github.com/user-attachments/assets/bc546521-9345-4da9-a817-cafa2962f564" />
-<img width="540" height="1200" alt="Screenshot_20260907_114039" src="https://github.com/user-attachments/assets/fb6775ca-40f1-4058-a2ff-354785c117f8" />
-<img width="540" height="1200" alt="Screenshot_20260907_114032" src="https://github.com/user-attachments/assets/106c231b-3e05-4fda-b957-daba6912adf9" />
+## Screenshots
+
+<table>
+  <tr>
+    <td width="33%"><img src="https://github.com/user-attachments/assets/61cf5976-01b9-432c-99c4-a8264dc1bcd7" alt="Screenshot 114137" /></td>
+    <td width="33%"><img src="https://github.com/user-attachments/assets/fae792c1-6d5a-4c08-938e-12cc169dacff" alt="Screenshot 114049" /></td>
+    <td width="33%"><img src="https://github.com/user-attachments/assets/bc546521-9345-4da9-a817-cafa2962f564" alt="Screenshot 114045" /></td>
+  </tr>
+  <tr>
+    <td width="33%"><img src="https://github.com/user-attachments/assets/fb6775ca-40f1-4058-a2ff-354785c117f8" alt="Screenshot 114039" /></td>
+    <td width="33%"><img src="https://github.com/user-attachments/assets/106c231b-3e05-4fda-b957-daba6912adf9" alt="Screenshot 114032" /></td>
+    <td width="33%"></td>
+  </tr>
+</table>
 
 ## Requirements
 
