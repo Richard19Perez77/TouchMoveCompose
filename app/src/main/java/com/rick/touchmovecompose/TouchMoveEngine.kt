@@ -6,12 +6,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import com.rick.touchmovecompose.ui.theme.MikuAccent
 import com.rick.touchmovecompose.ui.theme.MikuNight
 import kotlin.math.min
 
@@ -32,7 +30,6 @@ class TouchMoveEngine {
         get() = !isRunning && overlayMessage.isNotEmpty()
 
     private var screenColor: Color = MikuNight
-    private var hudScrim: Color = MikuNight.copy(alpha = 0.88f)
     private var screenW = 0
     private var screenH = 0
 
@@ -51,18 +48,15 @@ class TouchMoveEngine {
         private set
     var touchCounter by mutableIntStateOf(0)
         private set
+    var cubeCount by mutableIntStateOf(0)
+        private set
+    var drawnCount by mutableIntStateOf(0)
+        private set
 
     private val plot = PlotPoints()
-    private val hudPaint = android.graphics.Paint().apply {
-        color = MikuAccent.toArgb()
-        textSize = HUD_TEXT_SIZE
-        isAntiAlias = true
-    }
 
     fun applyPalette(background: Color, primary: Color, accent: Color) {
         screenColor = background
-        hudScrim = background.copy(alpha = 0.88f)
-        hudPaint.color = accent.toArgb()
         cubeBatch.setPrimaryColor(primary.toArgb())
     }
 
@@ -90,6 +84,8 @@ class TouchMoveEngine {
         touchingScreen = false
         drawCounter = 0
         touchCounter = 0
+        cubeCount = 0
+        drawnCount = 0
         cubes.clear()
     }
 
@@ -152,49 +148,8 @@ class TouchMoveEngine {
             }
         }
         cubeBatch.draw(scope.drawContext.canvas.nativeCanvas)
-
-        // Telemetry last so cubes never cover it.
-        val textSize = hudPaint.textSize
-        val lineGap = textSize + 8f
-        val hudLines = 5
-        val hudHeight = lineGap * hudLines + 10f
-        scope.drawRect(
-            color = hudScrim,
-            topLeft = Offset.Zero,
-            size = Size(scope.size.width, hudHeight)
-        )
-        var y = textSize + 6f
-        scope.drawContext.canvas.nativeCanvas.apply {
-            fun hudLine(text: String) {
-                drawText(text, 20f, y, hudPaint)
-                y += lineGap
-            }
-            hudLine(
-                "Cubes: ${cubes.size} (${cubeBatch.cubeCount} drawn)  " +
-                    "Draws: $drawCounter  Touches: $touchCounter"
-            )
-            hudLine(
-                "FPS: ${telemetry.fps.format1()}  " +
-                    "Frame: ${telemetry.frameMs.format1()}ms  " +
-                    "Jank: ${telemetry.jankCount}  " +
-                    "${telemetry.refreshHz.format0()}Hz"
-            )
-            hudLine(
-                "CPU: ${telemetry.cpuPercent.format0()}% of " +
-                    "${telemetry.cpuCores} cores  " +
-                    "UI: ${telemetry.uiCpuPercent.format0()}%"
-            )
-            hudLine(
-                "Heap: ${telemetry.heapUsedMb.format0()}/" +
-                    "${telemetry.heapMaxMb.format0()} MB  " +
-                    "Native: ${telemetry.nativeHeapMb.format0()} MB"
-            )
-            hudLine(
-                "PSS: ${telemetry.pssMb.format0()} MB  " +
-                    "Thermal: ${telemetry.thermalLabel}  " +
-                    telemetry.budgetLabel
-            )
-        }
+        cubeCount = cubes.size
+        drawnCount = cubeBatch.cubeCount
     }
 
     private fun recordTouch(position: Offset) {
@@ -270,10 +225,5 @@ class TouchMoveEngine {
     companion object {
         /** Spawn half-size vs. shortest edge distance (0 = tiny, 1 = to the edge). */
         const val CUBE_RATIO = 0.2
-        private const val HUD_TEXT_SIZE = 40f
     }
 }
-
-private fun Float.format0(): String = String.format(java.util.Locale.US, "%.0f", this)
-
-private fun Float.format1(): String = String.format(java.util.Locale.US, "%.1f", this)

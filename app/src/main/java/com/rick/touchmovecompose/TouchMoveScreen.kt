@@ -162,6 +162,14 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
                 engine.draw(this, telemetry)
             }
 
+            // Read frameNanos so stats refresh on vsync; swipe a row if it overflows.
+            frameNanos
+            StatsHud(
+                engine = engine,
+                telemetry = telemetry,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+
             if (engine.overlayVisible) {
                 Text(
                     text = engine.overlayMessage,
