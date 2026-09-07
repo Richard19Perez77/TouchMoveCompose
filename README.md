@@ -17,6 +17,12 @@ Android app: drag on the screen and isometric **cubes** spawn and fly. Built wit
 - Batched `drawVertices` + `drawLines` (two native draws per frame, not one path per face)
 - Edge-to-edge Material 3 chrome (`minSdk` 24, `targetSdk` 37)
 
+<img width="1080" height="2400" alt="Screenshot_20260907_114137" src="https://github.com/user-attachments/assets/61cf5976-01b9-432c-99c4-a8264dc1bcd7" />
+<img width="1080" height="2400" alt="Screenshot_20260907_114049" src="https://github.com/user-attachments/assets/fae792c1-6d5a-4c08-938e-12cc169dacff" />
+<img width="1080" height="2400" alt="Screenshot_20260907_114045" src="https://github.com/user-attachments/assets/bc546521-9345-4da9-a817-cafa2962f564" />
+<img width="1080" height="2400" alt="Screenshot_20260907_114039" src="https://github.com/user-attachments/assets/fb6775ca-40f1-4058-a2ff-354785c117f8" />
+<img width="1080" height="2400" alt="Screenshot_20260907_114032" src="https://github.com/user-attachments/assets/106c231b-3e05-4fda-b957-daba6912adf9" />
+
 ## Requirements
 
 - Android Studio with JDK 11
