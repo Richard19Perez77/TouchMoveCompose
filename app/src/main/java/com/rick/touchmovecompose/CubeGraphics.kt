@@ -20,6 +20,11 @@ internal class CubeBatch {
     var cubeCount = 0
         private set
 
+    private var colorFront = 0xFF39C5BB.toInt()
+    private var colorTop = 0xFF7AEEE6.toInt()
+    private var colorRight = 0xFF137A74.toInt()
+    private var colorEdge = 0xFF0B4F4B.toInt()
+
     private val fillPaint = Paint().apply {
         style = Paint.Style.FILL
         isAntiAlias = false
@@ -35,8 +40,16 @@ internal class CubeBatch {
     private val edgePaint = Paint().apply {
         style = Paint.Style.STROKE
         strokeWidth = EDGE_STROKE
-        color = COLOR_EDGE
+        color = colorEdge
         isAntiAlias = true
+    }
+
+    fun setPrimaryColor(primaryArgb: Int) {
+        colorFront = primaryArgb
+        colorTop = mixTowardWhite(primaryArgb, 0.40f)
+        colorRight = mixTowardBlack(primaryArgb, 0.28f)
+        colorEdge = mixTowardBlack(primaryArgb, 0.48f)
+        edgePaint.color = colorEdge
     }
 
     fun begin() {
@@ -71,9 +84,9 @@ internal class CubeBatch {
         ensureFaces(FLOATS_PER_CUBE, VERTICES_PER_CUBE)
         ensureLines(LINE_FLOATS_PER_CUBE)
 
-        addQuad(ftlX, ftlY, ftrX, ftrY, tbrX, tbrY, tblX, tblY, COLOR_TOP)
-        addQuad(ftrX, ftrY, fbrX, fbrY, sbbX, sbbY, tbrX, tbrY, COLOR_RIGHT)
-        addQuad(ftlX, ftlY, ftrX, ftrY, fbrX, fbrY, fblX, fblY, COLOR_FRONT)
+        addQuad(ftlX, ftlY, ftrX, ftrY, tbrX, tbrY, tblX, tblY, colorTop)
+        addQuad(ftrX, ftrY, fbrX, fbrY, sbbX, sbbY, tbrX, tbrY, colorRight)
+        addQuad(ftlX, ftlY, ftrX, ftrY, fbrX, fbrY, fblX, fblY, colorFront)
 
         addLine(ftlX, ftlY, ftrX, ftrY)
         addLine(ftrX, ftrY, fbrX, fbrY)
@@ -175,9 +188,32 @@ internal class CubeBatch {
         private const val ISO_X = 0.72f
         private const val ISO_Y = 0.42f
         private const val EDGE_STROKE = 1.5f
-        private const val COLOR_FRONT = 0xFF1E88E5.toInt()
-        private const val COLOR_TOP = 0xFF64B5F6.toInt()
-        private const val COLOR_RIGHT = 0xFF1565C0.toInt()
-        private const val COLOR_EDGE = 0xFF0D47A1.toInt()
     }
+}
+
+private fun mixTowardWhite(color: Int, amount: Float): Int {
+    val a = android.graphics.Color.alpha(color)
+    val r = android.graphics.Color.red(color)
+    val g = android.graphics.Color.green(color)
+    val b = android.graphics.Color.blue(color)
+    return android.graphics.Color.argb(
+        a,
+        r + ((255 - r) * amount).toInt(),
+        g + ((255 - g) * amount).toInt(),
+        b + ((255 - b) * amount).toInt(),
+    )
+}
+
+private fun mixTowardBlack(color: Int, amount: Float): Int {
+    val a = android.graphics.Color.alpha(color)
+    val r = android.graphics.Color.red(color)
+    val g = android.graphics.Color.green(color)
+    val b = android.graphics.Color.blue(color)
+    val keep = 1f - amount
+    return android.graphics.Color.argb(
+        a,
+        (r * keep).toInt(),
+        (g * keep).toInt(),
+        (b * keep).toInt(),
+    )
 }

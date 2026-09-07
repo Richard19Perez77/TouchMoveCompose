@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +28,6 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -57,6 +58,7 @@ private val AccelerateEasing = Easing { fraction -> fraction * fraction }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TouchMoveScreen(modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
     val tapMessage = stringResource(R.string.tap_blue_screen)
     val pauseMessage = stringResource(R.string.message_text)
     val context = LocalContext.current
@@ -64,6 +66,13 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
         TouchMoveEngine().also { it.restart(tapMessage) }
     }
     val telemetry = remember(context) { PerformanceTelemetry(context) }
+    SideEffect {
+        engine.applyPalette(
+            background = colors.secondary,
+            primary = colors.primary,
+            accent = colors.tertiary,
+        )
+    }
 
     var introFinished by remember { mutableStateOf(false) }
     // Read inside Canvas so a vsync without other state still redraws.
@@ -156,8 +165,8 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
             if (engine.overlayVisible) {
                 Text(
                     text = engine.overlayMessage,
-                    color = Color.Red,
-                    fontSize = 24.sp,
+                    color = colors.tertiary,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier

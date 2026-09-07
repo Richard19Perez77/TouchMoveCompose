@@ -10,6 +10,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import com.rick.touchmovecompose.ui.theme.MikuAccent
+import com.rick.touchmovecompose.ui.theme.MikuNight
 import kotlin.math.min
 
 /**
@@ -28,7 +31,8 @@ class TouchMoveEngine {
     val overlayVisible: Boolean
         get() = !isRunning && overlayMessage.isNotEmpty()
 
-    private var screenColor: Color = Color.Blue
+    private var screenColor: Color = MikuNight
+    private var hudScrim: Color = MikuNight.copy(alpha = 0.88f)
     private var screenW = 0
     private var screenH = 0
 
@@ -50,9 +54,16 @@ class TouchMoveEngine {
 
     private val plot = PlotPoints()
     private val hudPaint = android.graphics.Paint().apply {
-        color = android.graphics.Color.RED
+        color = MikuAccent.toArgb()
         textSize = HUD_TEXT_SIZE
         isAntiAlias = true
+    }
+
+    fun applyPalette(background: Color, primary: Color, accent: Color) {
+        screenColor = background
+        hudScrim = background.copy(alpha = 0.88f)
+        hudPaint.color = accent.toArgb()
+        cubeBatch.setPrimaryColor(primary.toArgb())
     }
 
     fun setSize(width: Int, height: Int) {
@@ -73,7 +84,6 @@ class TouchMoveEngine {
     fun restart(tapMessage: String) {
         isRunning = false
         overlayMessage = tapMessage
-        screenColor = Color.Blue
         createCube = false
         clearCubes = false
         touchingScreen = false
@@ -105,7 +115,6 @@ class TouchMoveEngine {
     }
 
     fun updatePhysics(telemetry: PerformanceTelemetry) {
-        screenColor = Color.White
         if (clearCubes) {
             clearCubes = false
             cubes.clear()
@@ -149,7 +158,7 @@ class TouchMoveEngine {
         val hudLines = 5
         val hudHeight = lineGap * hudLines + 10f
         scope.drawRect(
-            color = Color.White.copy(alpha = 0.88f),
+            color = hudScrim,
             topLeft = Offset.Zero,
             size = Size(scope.size.width, hudHeight)
         )
@@ -260,7 +269,7 @@ class TouchMoveEngine {
     companion object {
         /** Spawn half-size vs. shortest edge distance (0 = tiny, 1 = to the edge). */
         const val CUBE_RATIO = 0.2
-        private const val HUD_TEXT_SIZE = 34f
+        private const val HUD_TEXT_SIZE = 40f
     }
 }
 
