@@ -6,6 +6,8 @@ Android app: drag on the screen and isometric **cubes** spawn and fly. Built wit
 
 [Detailed overview](docs/OVERVIEW.md) covers every class, the frame loop, telemetry, and performance budget.
 
+https://github.com/user-attachments/assets/f2926a40-db79-45a7-a3f7-dabf70c7a666
+
 ## Features
 
 - Tap and drag to spawn cubes; they start moving as soon as they exist
