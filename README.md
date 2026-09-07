@@ -6,7 +6,7 @@ Android app: drag on the screen and isometric **cubes** spawn and fly. Built wit
 
 [Detailed overview](docs/OVERVIEW.md) covers every class, the frame loop, telemetry, and performance budget.
 
-https://github.com/user-attachments/assets/f2926a40-db79-45a7-a3f7-dabf70c7a666
+<img width="1280" height="720" alt="TouchMoveKotlin 2" src="https://github.com/user-attachments/assets/a6f06dc0-8693-4806-ba9d-f9230c41768c" />
 
 ## Features
 
