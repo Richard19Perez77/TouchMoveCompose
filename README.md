@@ -36,7 +36,7 @@ Android app: drag on the screen and isometric **cubes** spawn and fly. Built wit
 
 ## Requirements
 
-- Android Studio with JDK 11
+- Android Studio with JDK 17
 - Device or emulator, API 24+
 
 ## Run

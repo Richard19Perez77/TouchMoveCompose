@@ -18,7 +18,7 @@ It started as a port of a `SurfaceView` + XML interpolator demo (squares, hairli
 There is **no** XML content layout, **no** `SurfaceView`, **no** GLSurfaceView, **no** Filament. Compose owns the window. A small engine owns cube state. Native Android `Canvas` draws the mesh.
 
 **IDs:** application `com.rick.touchmovecompose`, version `1.0` (`versionCode` 1).  
-**SDK:** `minSdk` 24, `targetSdk` 37, `compileSdk` 37, Java 11.  
+**SDK:** `minSdk` 24, `targetSdk` 37, `compileSdk` 37, Java 17.  
 **UI:** Jetpack Compose, Material 3, edge-to-edge.
 
 ---
