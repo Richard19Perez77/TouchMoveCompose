@@ -115,14 +115,21 @@ class PerformanceTelemetry(private val context: Context) {
         refreshHz = readRefreshRate(context)
     }
 
+    /** Board was wiped; allow spawning even if the last FPS sample was low. */
+    fun onSceneCleared() {
+        holdSpawn = false
+        skipSmallCubes = false
+    }
+
     private fun updateBudget() {
         if (fps <= 0f) {
             holdSpawn = false
             skipSmallCubes = false
             return
         }
-        if (fps < SPAWN_HOLD_FPS) holdSpawn = true
-        else if (fps >= SPAWN_RESUME_FPS) holdSpawn = false
+        // Resume as soon as we are at the 55fps floor. Requiring 62fps left
+        // 60Hz phones stuck on Hold spawn forever after a dip.
+        holdSpawn = fps < TARGET_FPS
         skipSmallCubes = fps < TARGET_FPS
     }
 
@@ -195,7 +202,5 @@ class PerformanceTelemetry(private val context: Context) {
         private const val BYTES_PER_MB = 1024f * 1024f
         const val TARGET_FPS = 55f
         const val LOD_MIN_SIZE = 18f
-        private const val SPAWN_HOLD_FPS = 58f
-        private const val SPAWN_RESUME_FPS = 62f
     }
 }

@@ -109,6 +109,7 @@ class TouchMoveEngine {
         if (clearCubes) {
             clearCubes = false
             cubes.clear()
+            telemetry.onSceneCleared()
         }
         if (createCube) {
             createCube = false
