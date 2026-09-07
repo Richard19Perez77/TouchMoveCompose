@@ -59,7 +59,7 @@ private val AccelerateEasing = Easing { fraction -> fraction * fraction }
 @Composable
 fun TouchMoveScreen(modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
-    val tapMessage = stringResource(R.string.tap_blue_screen)
+    val tapMessage = stringResource(R.string.tap_to_start)
     val pauseMessage = stringResource(R.string.message_text)
     val context = LocalContext.current
     val engine = remember(tapMessage) {

@@ -2,6 +2,6 @@
     <string name="app_name">TouchMoveCompose</string>
     <string name="title_touch_move">Touch Move Compose</string>
     <string name="action_restart">Restart?</string>
-    <string name="tap_blue_screen">Tap Blue Screen</string>
+    <string name="tap_to_start">Tap To Start</string>
     <string name="message_text">Message to User</string>
 </resources>
