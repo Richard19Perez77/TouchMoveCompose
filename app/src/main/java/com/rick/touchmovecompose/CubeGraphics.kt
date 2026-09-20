@@ -59,7 +59,7 @@ internal class CubeBatch {
         cubeCount = 0
     }
 
-    fun addCube(left: Float, top: Float, size: Float) {
+    fun addCube(left: Float, top: Float, size: Float, primaryArgb: Int = colorFront) {
         if (size <= 1f) return
 
         val depth = size * DEPTH_RATIO
@@ -81,12 +81,16 @@ internal class CubeBatch {
         val sbbX = fbrX + dx
         val sbbY = fbrY - dy
 
+        val front = primaryArgb
+        val topFace = mixTowardWhite(primaryArgb, 0.40f)
+        val rightFace = mixTowardBlack(primaryArgb, 0.28f)
+
         ensureFaces(FLOATS_PER_CUBE, VERTICES_PER_CUBE)
         ensureLines(LINE_FLOATS_PER_CUBE)
 
-        addQuad(ftlX, ftlY, ftrX, ftrY, tbrX, tbrY, tblX, tblY, colorTop)
-        addQuad(ftrX, ftrY, fbrX, fbrY, sbbX, sbbY, tbrX, tbrY, colorRight)
-        addQuad(ftlX, ftlY, ftrX, ftrY, fbrX, fbrY, fblX, fblY, colorFront)
+        addQuad(ftlX, ftlY, ftrX, ftrY, tbrX, tbrY, tblX, tblY, topFace)
+        addQuad(ftrX, ftrY, fbrX, fbrY, sbbX, sbbY, tbrX, tbrY, rightFace)
+        addQuad(ftlX, ftlY, ftrX, ftrY, fbrX, fbrY, fblX, fblY, front)
 
         addLine(ftlX, ftlY, ftrX, ftrY)
         addLine(ftrX, ftrY, fbrX, fbrY)

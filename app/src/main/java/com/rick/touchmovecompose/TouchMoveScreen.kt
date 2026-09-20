@@ -139,22 +139,14 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
                             val down = awaitFirstDown()
                             if (!introFinished) return@awaitEachGesture
                             if (!engine.isRunning) {
-                                // First tap leaves the idle overlay; the rest of
-                                // this gesture still spawns cubes that fly.
                                 engine.resumeFromTap()
-                                drag(down.id) { change ->
-                                    engine.onMove(change.position)
-                                    change.consume()
-                                }
-                                engine.onUp()
-                            } else {
-                                engine.onDown(down.position)
-                                drag(down.id) { change ->
-                                    engine.onMove(change.position)
-                                    change.consume()
-                                }
-                                engine.onUp()
                             }
+                            engine.onDown(down.position)
+                            drag(down.id) { change ->
+                                engine.onMove(change.position)
+                                change.consume()
+                            }
+                            engine.onUp()
                         }
                     }
             ) {
