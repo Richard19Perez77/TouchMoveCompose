@@ -60,8 +60,7 @@ fun StatsHud(
         HudScrollRow(
             accent,
             "PSS ${telemetry.pssMb.format0()} MB   " +
-                "Thermal ${telemetry.thermalLabel}   " +
-                telemetry.budgetLabel,
+                "Thermal ${telemetry.thermalLabel}",
         )
     }
 }

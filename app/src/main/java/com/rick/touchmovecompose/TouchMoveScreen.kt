@@ -100,7 +100,7 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
             withFrameNanos { nanos ->
                 telemetry.onFrame(nanos)
                 if (engine.isRunning) {
-                    engine.updatePhysics(telemetry)
+                    engine.updatePhysics()
                 }
                 frameNanos = nanos
             }
@@ -159,7 +159,7 @@ fun TouchMoveScreen(modifier: Modifier = Modifier) {
                     }
             ) {
                 frameNanos
-                engine.draw(this, telemetry)
+                engine.draw(this)
             }
 
             // Read frameNanos so stats refresh on vsync; swipe a row if it overflows.

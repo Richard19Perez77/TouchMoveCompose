@@ -111,41 +111,31 @@ class TouchMoveEngine {
         touchingScreen = false
     }
 
-    fun updatePhysics(telemetry: PerformanceTelemetry) {
+    fun updatePhysics() {
         if (clearCubes) {
             clearCubes = false
             cubes.clear()
-            telemetry.onSceneCleared()
         }
         if (createCube) {
             createCube = false
-            if (!telemetry.holdSpawn) {
-                spawnCube()
-            }
+            spawnCube()
         }
         for (i in cubes.indices) {
             cubes[i].updatePoint()
         }
     }
 
-    fun draw(scope: DrawScope, telemetry: PerformanceTelemetry) {
+    fun draw(scope: DrawScope) {
         drawCounter++
 
         scope.drawRect(color = screenColor, size = scope.size)
 
-        val minSize = if (telemetry.skipSmallCubes) {
-            PerformanceTelemetry.LOD_MIN_SIZE
-        } else {
-            1f
-        }
         // In-place painter's sort: lower cubes overlap higher ones.
         cubes.sortBy { it.top + it.left }
         cubeBatch.begin()
         for (i in cubes.indices) {
             val cube = cubes[i]
-            if (cube.size >= minSize) {
-                cubeBatch.addCube(cube.left, cube.top, cube.size)
-            }
+            cubeBatch.addCube(cube.left, cube.top, cube.size)
         }
         cubeBatch.draw(scope.drawContext.canvas.nativeCanvas)
         cubeCount = cubes.size

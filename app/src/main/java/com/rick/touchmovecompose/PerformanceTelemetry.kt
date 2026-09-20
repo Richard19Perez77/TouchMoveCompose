@@ -43,17 +43,6 @@ class PerformanceTelemetry(private val context: Context) {
         private set
     var refreshHz: Float = readRefreshRate(context)
         private set
-    var holdSpawn: Boolean = false
-        private set
-    var skipSmallCubes: Boolean = false
-        private set
-
-    val budgetLabel: String
-        get() = when {
-            skipSmallCubes -> "LOD"
-            holdSpawn -> "Hold spawn"
-            else -> "Budget ok"
-        }
 
     private var lastFrameNanos = 0L
     private var framesInWindow = 0
@@ -95,7 +84,6 @@ class PerformanceTelemetry(private val context: Context) {
                 lastPssMs = nowMs
                 samplePss()
             }
-            updateBudget()
         }
     }
 
@@ -110,27 +98,7 @@ class PerformanceTelemetry(private val context: Context) {
         lastUiCpuNs = 0L
         lastCpuWallMs = 0L
         lastPssMs = 0L
-        holdSpawn = false
-        skipSmallCubes = false
         refreshHz = readRefreshRate(context)
-    }
-
-    /** Board was wiped; allow spawning even if the last FPS sample was low. */
-    fun onSceneCleared() {
-        holdSpawn = false
-        skipSmallCubes = false
-    }
-
-    private fun updateBudget() {
-        if (fps <= 0f) {
-            holdSpawn = false
-            skipSmallCubes = false
-            return
-        }
-        // Resume as soon as we are at the 55fps floor. Requiring 62fps left
-        // 60Hz phones stuck on Hold spawn forever after a dip.
-        holdSpawn = fps < TARGET_FPS
-        skipSmallCubes = fps < TARGET_FPS
     }
 
     private fun sampleCpu(nowMs: Long) {
@@ -200,7 +168,5 @@ class PerformanceTelemetry(private val context: Context) {
         private const val PSS_SAMPLE_MS = 2000L
         private const val JANK_MULTIPLIER = 1.5f
         private const val BYTES_PER_MB = 1024f * 1024f
-        const val TARGET_FPS = 55f
-        const val LOD_MIN_SIZE = 18f
     }
 }

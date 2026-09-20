@@ -31,14 +31,15 @@ app/src/main/
   java/com/rick/touchmovecompose/
     MainActivity.kt            setContent + enableEdgeToEdge
     TouchMoveScreen.kt         scaffold, intro, gestures, vsync
-    TouchMoveEngine.kt         flags, spawn, step, HUD
+    TouchMoveEngine.kt         flags, spawn, step
     CubeGraphics.kt            CubeBatch mesh
     PlotPoints.kt              octant pixel paths
-    PerformanceTelemetry.kt    FPS / CPU / memory / thermal / budget
+    PerformanceTelemetry.kt    FPS / CPU / memory / thermal
+    StatsHud.kt                scrollable stats overlay
     ui/theme/
       Color.kt                 Miku swatches
       Theme.kt                 light/dark Material schemes
-      Type.kt                  Material bodyLarge (HUD is Paint)
+      Type.kt                  Material bodyLarge (HUD is Compose Text)
   res/values/
     strings.xml                title, restart, tap overlay, pause overlay
     themes.xml                 Theme.Material.Light.NoActionBar
@@ -126,8 +127,8 @@ Pointer code never mutates the cube list. It sets flags; `updatePhysics` consume
 
 ### Physics order (same tick)
 
-1. If `clearCubes`: `cubes.clear()`, `telemetry.onSceneCleared()` (drops Hold spawn / LOD so a 60Hz phone can draw again immediately)
-2. If `createCube` and not `telemetry.holdSpawn`: `spawnCube()`
+1. If `clearCubes`: `cubes.clear()`
+2. If `createCube`: `spawnCube()` (one per vsync while the finger is down)
 3. For every cube: `updatePoint()` (one pixel along its path)
 
 ### Spawn size
@@ -144,17 +145,17 @@ On construct: `PlotPoints.plotLine(origin, random point in screen)`. Each step c
 
 1. Fill `screenColor`
 2. `cubes.sortBy { top + left }` (in-place painter’s algorithm)
-3. `CubeBatch.begin()`; add cubes with `size >= minSize` (`1` or `LOD_MIN_SIZE` 18px)
+3. `CubeBatch.begin()`; add every cube
 4. `cubeBatch.draw(nativeCanvas)`
-5. HUD scrim full width × five lines, then native `drawText` (size **40px**, accent)
+5. Compose `StatsHud` overlay (not canvas text)
 
-HUD is drawn last so cubes cannot cover it.
+The HUD sits on top of the canvas so cubes cannot cover it. Each stats row can scroll sideways.
 
 ### Counters
 
 - `drawCounter`: increments every `draw`, including overlay frames; reset on `onDown` and `restart`
 - `touchCounter`: increments on `recordTouch` and `onUp`; reset on `onDown` and `restart`
-- HUD `Cubes: N (M drawn)`: `N` is live list size; `M` is how many passed LOD and entered the batch
+- HUD `Cubes: N (M drawn)`: `N` is live list size; `M` is how many entered the batch (same as `N` unless a cube is smaller than 1px)
 
 `restart` also clears flags, cubes, overlay message “Tap To Start”, `isRunning = false`. It does not reset telemetry (the button in the screen does that separately).
 
@@ -236,21 +237,7 @@ Jank: `dtNs > 1.5 * (1e9 / refreshHz)`. Refresh comes from `Display.refreshRate`
 
 `PowerManager.currentThermalStatus` mapped to `none` … `shutdown`. Below Q: `n/a`.
 
-### Budget (55 FPS floor)
-
-`TARGET_FPS = 55`. After each 500ms sample:
-
-- `fps <= 0` → no hold (startup)
-- `fps < 55` → `holdSpawn` and `skipSmallCubes` (`LOD`, skip size &lt; 18px)
-- else → both off
-
-HUD label: `Budget ok` / `Hold spawn` / `LOD` (LOD wins if both).
-
-`onSceneCleared()` and `reset()` force both flags off. Needed because a previous design resumed spawn only at **62 FPS**, which a **60Hz** panel never reaches: clear still worked, spawn did not, until Restart.
-
-Hold spawn only **stops new cubes**. Existing cubes still step and draw (unless LOD hides the small ones). Clearing the board is what recovers FPS.
-
-`reset()` (Restart) also zeros FPS, jank, and sample clocks.
+`reset()` (Restart) zeros FPS, jank, and sample clocks. There is **no spawn limiter**: FPS can fall as cube count grows; that is visible on the HUD.
 
 ---
 
@@ -313,9 +300,8 @@ Physics does not run when `isRunning` is false (idle/pause overlay). Draw still 
 - **Not 3D.** No camera, lighting, or GPU instancing.
 - **UI thread bound.** Batching removes per-cube path overhead; sort + vertex fill still scale with cube count.
 - **One spawn per frame** while dragging (vsync rate, not touch sample rate).
-- **LOD hides small cubes** when FPS &lt; 55; it does not delete them. `Cubes` vs `drawn` will disagree.
 - **PSS sample** can hitch every 2s.
 - **No persistence**, accounts, or network.
 - **No real tests** for engine/telemetry.
 
-A Filament or OpenGL scene would be the path to many thousands of cubes at 120Hz. Quality knobs already in place (hold spawn, LOD) are the Compose-canvas way to stay near 55 FPS across phones.
+A Filament or OpenGL scene would be the path to many thousands of cubes at 120Hz. This Canvas path will drop FPS as the list grows; the HUD is there so you can see it.
