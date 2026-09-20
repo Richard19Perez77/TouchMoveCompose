@@ -1,28 +1,24 @@
 package com.rick.touchmovecompose.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 
 private val MikuDarkColorScheme = darkColorScheme(
     primary = MikuTeal,
     onPrimary = MikuInk,
     primaryContainer = MikuTealDark,
     onPrimaryContainer = MikuMint,
-    secondary = MikuNight,
-    onSecondary = MikuMint,
+    secondary = MikuGrey,
+    onSecondary = MikuInk,
     secondaryContainer = Color(0xFF1E3A38),
     onSecondaryContainer = MikuMint,
-    tertiary = MikuAccent,
+    tertiary = MikuTealLight,
     onTertiary = MikuInk,
-    background = MikuNight,
+    background = MikuInk,
     onBackground = MikuMint,
     surface = MikuNight,
     onSurface = MikuWhite,
@@ -32,15 +28,15 @@ private val MikuDarkColorScheme = darkColorScheme(
 )
 
 private val MikuLightColorScheme = lightColorScheme(
-    primary = MikuTeal,
-    onPrimary = MikuInk,
+    primary = MikuTealDark,
+    onPrimary = MikuWhite,
     primaryContainer = MikuTealLight,
     onPrimaryContainer = MikuInk,
-    secondary = MikuMint,
-    onSecondary = MikuInk,
+    secondary = Color(0xFF4A5C5B),
+    onSecondary = MikuWhite,
     secondaryContainer = Color(0xFFD5E6E4),
     onSecondaryContainer = MikuInk,
-    tertiary = MikuAccent,
+    tertiary = MikuTeal,
     onTertiary = MikuInk,
     background = MikuMint,
     onBackground = MikuInk,
@@ -51,27 +47,17 @@ private val MikuLightColorScheme = lightColorScheme(
     outline = MikuTealDark,
 )
 
-/** Material 3 Miku theme. Canvas uses primary / secondary / tertiary (accent). */
+/** Material 3 Miku theme imported from the shared palette notes. */
 @Composable
 fun TouchMoveComposeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> MikuDarkColorScheme
-        else -> MikuLightColorScheme
-    }
-
+    val colorScheme = if (darkTheme) MikuDarkColorScheme else MikuLightColorScheme
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }

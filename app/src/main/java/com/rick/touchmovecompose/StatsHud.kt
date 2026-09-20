@@ -7,12 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
+import com.rick.touchmovecompose.ui.theme.HudScrim
+import com.rick.touchmovecompose.ui.theme.ScoreText
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
@@ -27,8 +28,8 @@ fun StatsHud(
     telemetry: PerformanceTelemetry,
     modifier: Modifier = Modifier,
 ) {
-    val accent = MaterialTheme.colorScheme.tertiary
-    val scrim = MaterialTheme.colorScheme.secondary.copy(alpha = 0.88f)
+    val accent = ScoreText
+    val scrim = HudScrim
     Column(
         modifier
             .fillMaxWidth()
