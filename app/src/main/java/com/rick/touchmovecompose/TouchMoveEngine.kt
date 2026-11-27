@@ -18,8 +18,8 @@ import kotlin.math.min
  * Cube set: isometric cubes, touch flags, and HUD, ticked from Compose vsync.
  *
  * Pointer handlers only set flags. Dragging paints cubes; each one walks a
- * random on-screen path as soon as it exists. Each new press cycles a Miku look.
- * Stats mode turns on the HUD plus spawn/LOD limiters; off is unconstrained draw.
+ * random on-screen path as soon as it exists. One press is one set: wipe the
+ * last list, pick a look, then paint until lift.
  */
 class TouchMoveEngine {
     var isRunning by mutableStateOf(false)
@@ -40,6 +40,7 @@ class TouchMoveEngine {
 
     // Flags consumed by [updatePhysics] each vsync.
     private var createCube = false
+    private var clearCubes = false
     private var touchingScreen = false
 
     private var newX = 0f
@@ -63,6 +64,7 @@ class TouchMoveEngine {
         private set
 
     private val pendingSpawns = ArrayList<Offset>()
+    private var strokeArgb = MikuLooks[0].primary.toArgb()
 
     fun applyPalette(background: Color, primary: Color, accent: Color) {
         screenColor = background
@@ -78,7 +80,6 @@ class TouchMoveEngine {
         isRunning = true
         overlayMessage = ""
         touchingScreen = true
-        nextLook()
     }
 
     fun pauseFromLifecycle(message: String) {
@@ -90,6 +91,7 @@ class TouchMoveEngine {
         isRunning = false
         overlayMessage = tapMessage
         createCube = false
+        clearCubes = false
         touchingScreen = false
         drawCounter = 0
         touchCounter = 0
@@ -115,12 +117,16 @@ class TouchMoveEngine {
 
     private fun applyCurrentLook() {
         val look = MikuLooks[lookIndex]
+        strokeArgb = look.primary.toArgb()
         applyPalette(look.background, look.primary, look.accent)
     }
 
-    /** New stroke: keep the field, spawn at this point on the next tick. */
+    /** New press: wipe the last set, pick a look, start a fresh list. */
     fun onDown(position: Offset) {
         recordTouch(position)
+        clearCubes = true
+        createCube = false
+        pendingSpawns.clear()
         touchingScreen = true
         nextLook()
         requestSpawn(position)
@@ -139,6 +145,11 @@ class TouchMoveEngine {
     }
 
     fun updatePhysics(telemetry: PerformanceTelemetry) {
+        if (clearCubes) {
+            clearCubes = false
+            cubes.clear()
+            telemetry.onSceneCleared()
+        }
         if (statsEnabled) {
             pendingSpawns.clear()
             if (createCube) {
@@ -177,7 +188,7 @@ class TouchMoveEngine {
         for (i in cubes.indices) {
             val cube = cubes[i]
             if (cube.size >= minSize) {
-                cubeBatch.addCube(cube.left, cube.top, cube.size)
+                cubeBatch.addCube(cube.left, cube.top, cube.size, cube.primaryArgb)
             }
         }
         cubeBatch.draw(scope.drawContext.canvas.nativeCanvas)
@@ -219,7 +230,8 @@ class TouchMoveEngine {
                     left.toFloat(),
                     top.toFloat(),
                     right.toFloat(),
-                    bottom.toFloat()
+                    bottom.toFloat(),
+                    strokeArgb
                 )
             )
         }
@@ -230,7 +242,8 @@ class TouchMoveEngine {
         var left: Float,
         var top: Float,
         var right: Float,
-        var bottom: Float
+        var bottom: Float,
+        val primaryArgb: Int
     ) {
         val size: Float get() = min(right - left, bottom - top)
 
