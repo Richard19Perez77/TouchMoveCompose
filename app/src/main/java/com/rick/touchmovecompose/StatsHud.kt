@@ -63,6 +63,12 @@ fun StatsHud(
             "PSS ${telemetry.pssMb.format0()} MB   " +
                 "Thermal ${telemetry.thermalLabel}",
         )
+        HudScrollRow(
+            accent,
+            telemetry.budgetLabel +
+                "   hold ${if (telemetry.holdSpawn) "on" else "off"}   " +
+                "LOD ${if (telemetry.skipSmallCubes) "on" else "off"}",
+        )
     }
 }
 

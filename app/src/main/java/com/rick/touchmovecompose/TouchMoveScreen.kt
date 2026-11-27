@@ -39,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -132,9 +131,11 @@ private fun TouchMovePlayfield(
         }
         while (true) {
             withFrameNanos { nanos ->
-                telemetry.onFrame(nanos)
+                if (engine.statsEnabled) {
+                    telemetry.onFrame(nanos, limitersEnabled = true)
+                }
                 if (engine.isRunning) {
-                    engine.updatePhysics()
+                    engine.updatePhysics(telemetry)
                 }
                 frameNanos = nanos
             }
@@ -147,6 +148,21 @@ private fun TouchMovePlayfield(
             TopAppBar(
                 title = { Text(stringResource(R.string.title_touch_move)) },
                 actions = {
+                    TextButton(onClick = {
+                        engine.toggleStats()
+                        if (!engine.statsEnabled) {
+                            telemetry.clearLimiters()
+                        }
+                    }) {
+                        Text(
+                            text = stringResource(R.string.action_stats),
+                            fontWeight = if (engine.statsEnabled) {
+                                FontWeight.Bold
+                            } else {
+                                FontWeight.Normal
+                            }
+                        )
+                    }
                     TextButton(onClick = {
                         engine.restart(tapMessage)
                         telemetry.reset()
@@ -192,18 +208,17 @@ private fun TouchMovePlayfield(
                     }
             ) {
                 frameNanos
-                engine.draw(this)
+                engine.draw(this, telemetry)
             }
 
-            // Read frameNanos so stats refresh on vsync; swipe a row if it overflows.
-            frameNanos
-            StatsHud(
-                engine = engine,
-                telemetry = telemetry,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .alpha(if (introFinished) 1f else 0f)
-            )
+            if (engine.statsEnabled) {
+                frameNanos
+                StatsHud(
+                    engine = engine,
+                    telemetry = telemetry,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            }
 
             AnimatedVisibility(
                 visible = engine.overlayVisible,

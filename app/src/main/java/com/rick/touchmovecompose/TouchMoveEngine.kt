@@ -19,6 +19,7 @@ import kotlin.math.min
  *
  * Pointer handlers only set flags. Dragging paints cubes; each one walks a
  * random on-screen path as soon as it exists. Each new press cycles a Miku look.
+ * Stats mode turns on the HUD plus spawn/LOD limiters; off is unconstrained draw.
  */
 class TouchMoveEngine {
     var isRunning by mutableStateOf(false)
@@ -58,6 +59,11 @@ class TouchMoveEngine {
     var lookIndex by mutableIntStateOf(0)
         private set
 
+    var statsEnabled by mutableStateOf(false)
+        private set
+
+    private val pendingSpawns = ArrayList<Offset>()
+
     fun applyPalette(background: Color, primary: Color, accent: Color) {
         screenColor = background
         cubeBatch.setPrimaryColor(primary.toArgb())
@@ -90,8 +96,16 @@ class TouchMoveEngine {
         cubeCount = 0
         drawnCount = 0
         cubes.clear()
+        pendingSpawns.clear()
         lookIndex = 0
         applyCurrentLook()
+    }
+
+    fun toggleStats() {
+        statsEnabled = !statsEnabled
+        if (!statsEnabled) {
+            pendingSpawns.clear()
+        }
     }
 
     fun nextLook() {
@@ -107,15 +121,15 @@ class TouchMoveEngine {
     /** New stroke: keep the field, spawn at this point on the next tick. */
     fun onDown(position: Offset) {
         recordTouch(position)
-        createCube = true
         touchingScreen = true
         nextLook()
+        requestSpawn(position)
     }
 
     /** Request another cube at this point on the next physics tick. */
     fun onMove(position: Offset) {
         recordTouch(position)
-        createCube = true
+        requestSpawn(position)
     }
 
     /** Stop spawning; cubes already in flight keep walking their paths. */
@@ -124,30 +138,59 @@ class TouchMoveEngine {
         touchingScreen = false
     }
 
-    fun updatePhysics() {
-        if (createCube) {
+    fun updatePhysics(telemetry: PerformanceTelemetry) {
+        if (statsEnabled) {
+            pendingSpawns.clear()
+            if (createCube) {
+                createCube = false
+                if (!telemetry.holdSpawn) {
+                    spawnCube()
+                }
+            }
+        } else {
             createCube = false
-            spawnCube()
+            for (i in pendingSpawns.indices) {
+                val point = pendingSpawns[i]
+                newX = point.x
+                newY = point.y
+                spawnCube()
+            }
+            pendingSpawns.clear()
         }
         for (i in cubes.indices) {
             cubes[i].updatePoint()
         }
     }
 
-    fun draw(scope: DrawScope) {
+    fun draw(scope: DrawScope, telemetry: PerformanceTelemetry) {
         drawCounter++
 
         scope.drawRect(color = screenColor, size = scope.size)
 
+        val minSize = if (statsEnabled && telemetry.skipSmallCubes) {
+            PerformanceTelemetry.LOD_MIN_SIZE
+        } else {
+            1f
+        }
         cubes.sortBy { it.top + it.left }
         cubeBatch.begin()
         for (i in cubes.indices) {
             val cube = cubes[i]
-            cubeBatch.addCube(cube.left, cube.top, cube.size)
+            if (cube.size >= minSize) {
+                cubeBatch.addCube(cube.left, cube.top, cube.size)
+            }
         }
         cubeBatch.draw(scope.drawContext.canvas.nativeCanvas)
         cubeCount = cubes.size
         drawnCount = cubeBatch.cubeCount
+    }
+
+    private fun requestSpawn(position: Offset) {
+        if (statsEnabled) {
+            createCube = true
+        } else {
+            pendingSpawns.add(position)
+        }
     }
 
     private fun recordTouch(position: Offset) {
